@@ -1,0 +1,224 @@
+<html>
+<head>
+	<title> 成發</title>
+	<script src="http://threejs.org/build/three.min.js"></script>
+</head>
+<body>
+	<script>
+	var edge=10;
+	var score=0;
+    container = document.createElement( 'div' );
+    document.body.appendChild( container );
+    var info = document.createElement( 'div' );
+    info.style.position = 'absolute';
+    info.style.color = 'black';
+    info.style.top = '20px';
+    info.style.width = '100%';
+    info.style.textAlign = 'left';
+    info.innerHTML = 'Score : 0';
+    container.appendChild( info );
+	//設定攝影機的位置
+	var scene = new THREE.Scene();
+	var camera = new THREE.PerspectiveCamera( 70, window.innerWidth/
+	window.innerHeight, 1, 1000 );
+	var camera2 = new THREE.PerspectiveCamera( 70, window.innerWidth/
+	window.innerHeight, 1, 1000 );
+	var nowCamera=camera;
+	//設定視窗的位置
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setClearColor( 0xbbbbbb );
+	document.body.appendChild( renderer.domElement );
+	//新增光
+	var directionalLight = new THREE.DirectionalLight( 0xcccccc );
+	directionalLight.position.set( 1,2,3 ).normalize();
+	scene.add( directionalLight );
+	var AmbientLight = new THREE.AmbientLight( 0x404040 );
+	scene.add( AmbientLight );
+	//控制球
+	document.addEventListener("mousedown", onDocumentMouseDown, false);
+	document.addEventListener("mousemove", onDocumentMouseMove, false);
+	document.addEventListener("mouseup", onDocumentMouseUp, false);
+	document.addEventListener('keydown', onDocumentKeyDown,false);
+	//設定參數
+	var manualControl = false,longitude = -90,latitude = 0;
+	var savedX,savedY;
+	var savedLongitude,savedLatitude;
+	var mouse = new THREE.Vector2();
+	camera.target = new THREE.Vector3(0, 0, 0);
+	//利用滑鼠觸發事件來改變參數
+	function onDocumentKeyDown(event){
+        if((event.keyCode || event.which)==83)nowCamera= nowCamera==camera? camera2 : camera;
+				if((event.keyCode || event.which)==37&&ball1.vz<2){
+						ball1.vx-=0.005;
+						ball1.vz+=0.005;
+				}
+				if((event.keyCode || event.which)==39&&ball1.vx<2){
+						ball1.vx+=0.005;
+						ball1.vz-=0.005;
+				}
+				if((event.keyCode || event.which)==38&&ball1.vy<2){
+					ball1.vy+=0.005;
+				}
+				if((event.keyCode || event.which)==40){
+					ball1.vy-=0.005;
+				}
+				if((event.keyCode || event.which)==82&&ball1.vx>0&&ball1.vx>0&&ball1.vx>0){
+						ball1.vx-=0.001;
+						ball1.vy-=0.001;
+						ball1.vz-=0.001;
+				}
+				if((event.keyCode || event.which)==88){
+					ball1.position.x=0;
+					ball1.position.y=0;
+					ball1.position.z=0;
+				}
+  }
+	function onDocumentMouseDown(event){
+	    event.preventDefault();
+	    manualControl = true;
+	    savedX = event.clientX;
+	    savedY = event.clientY;
+	    savedLongitude = longitude;
+	    savedLatitude = latitude;
+	}
+	function onDocumentMouseMove(event){
+	    event.preventDefault();
+	    if(manualControl){
+	        longitude = -(savedX - event.clientX) * 0.1 + savedLongitude;
+	        latitude = -(event.clientY - savedY) * 0.1 + savedLatitude;
+	};
+	    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	}
+	function onDocumentMouseUp(event){
+	    manualControl = false;
+	}
+	//框線
+	var cooAxisMat = new THREE.LineBasicMaterial({ color: 0xff0000 });
+	var cooAxisGeo = [ new THREE.Geometry(), new THREE.Geometry(), new THREE.Geometry(),new THREE.Geometry(),new THREE.Geometry()];
+	cooAxisGeo[0].vertices.push( new THREE.Vector3( edge/2, edge/2, edge/2 ), new THREE.Vector3( edge/2, edge/2, -edge/2 ), new THREE.Vector3( edge/2, -edge/2, -edge/2 ), new THREE.Vector3( edge/2, -edge/2, edge/2 ), new THREE.Vector3( edge/2, edge/2, edge/2 ));
+	cooAxisGeo[1].vertices.push( new THREE.Vector3(edge/2, edge/2, edge/2),new THREE.Vector3( -edge/2, edge/2, edge/2 ),new THREE.Vector3( -edge/2, -edge/2, edge/2 ),new THREE.Vector3( edge/2, -edge/2, edge/2 ));
+	cooAxisGeo[2].vertices.push(new THREE.Vector3( -edge/2, edge/2, edge/2 ), new THREE.Vector3( -edge/2, edge/2, -edge/2 ),new THREE.Vector3( -edge/2, -edge/2, -edge/2 ),new THREE.Vector3( -edge/2, -edge/2, edge/2 ));
+	cooAxisGeo[3].vertices.push(new THREE.Vector3( -edge/2, -edge/2, -edge/2 ), new THREE.Vector3( edge/2, -edge/2, -edge/2 ));
+	cooAxisGeo[4].vertices.push(new THREE.Vector3( -edge/2, edge/2, -edge/2 ), new THREE.Vector3( edge/2, edge/2, -edge/2 ));
+	var cooAxis = [
+	new THREE.Line( cooAxisGeo[0], cooAxisMat ),
+	new THREE.Line( cooAxisGeo[1], cooAxisMat ),
+	new THREE.Line( cooAxisGeo[2], cooAxisMat ),
+	new THREE.Line( cooAxisGeo[3], cooAxisMat ),
+	new THREE.Line( cooAxisGeo[4], cooAxisMat )
+	];
+	scene.add( cooAxis[0] );
+	scene.add( cooAxis[1] );
+	scene.add( cooAxis[2] );
+	scene.add( cooAxis[3] );
+	scene.add( cooAxis[4] );
+	//建立任何一個物件都必須要先宣告他的幾何形狀以及材質(外觀)
+	var geometry1 = new THREE.SphereGeometry(0.1, 32, 32 )
+	var geometry2= new THREE.BoxGeometry( edge, edge, edge );
+	var boxmaterial = new THREE.MeshLambertMaterial( { emissive: 0xffdead } );
+	boxmaterial.transparent = true;
+	boxmaterial.opacity = 0.5;
+	var ballmaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+	var ball1 = new THREE.Mesh( geometry1, ballmaterial );
+	var box = new THREE.Mesh( geometry2, boxmaterial);
+	ball1.vx=0.03;
+	ball1.vy=0.03;
+	ball1.vz=0.03;
+	scene.add(ball1,box);
+	function render(){
+		requestAnimationFrame( render );
+		//運算攝影機2位置
+		camera2.position.x = ball1.position.x;
+		camera2.position.y = ball1.position.y;
+		camera2.position.z = ball1.position.z;
+		camera2.lookAt(getTarget());
+		//限制轉動角度
+		latitude = Math.max(-85, Math.min(87, latitude));
+		//運算攝影機1位置
+		camera.target.x = 500* Math.sin(THREE.Math.degToRad(90 - latitude)) * Math.cos(THREE.Math.degToRad(longitude));
+		camera.target.y = 500 * Math.cos(THREE.Math.degToRad(90 - latitude));
+		camera.target.z = 500 * Math.sin(THREE.Math.degToRad(90 - latitude)) * Math.sin(THREE.Math.degToRad(longitude));
+		camera.lookAt(camera.target);
+		camera.position.x = -camera.target.x/60;
+		camera.position.y = -camera.target.y/60;
+		camera.position.z = -camera.target.z/60;
+		ball1.position.x+=ball1.vx;
+		ball1.position.y+=ball1.vy;
+		ball1.position.z+=ball1.vz;
+		if(ball1.position.x>4.7||ball1.position.x<-4.7)ball1.vx=-ball1.vx;
+		if(ball1.position.y>4.7||ball1.position.y<-4.7)ball1.vy=-ball1.vy;
+		if(ball1.position.z>4.7||ball1.position.z<-4.7)ball1.vz=-ball1.vz;
+		renderer.render(scene, nowCamera );
+	}
+	render();
+	//利用 camera.position 來設定攝影機座標
+	camera.position.x = 3;
+	camera.position.y = 3;
+	camera.position.z = 3;
+	//讓攝影機看著某個特定點( 物件初始位置在(0,0,0) )
+	camera.lookAt( new THREE.Vector3(0, 0, 0) );
+	function getTarget(){
+		var target=new THREE.Vector3(camera2.position.x+ball1.vx,camera2.position.y+ball1.vy,camera2.position.z+ball1.vz);
+		return target;
+	}
+	//球的顏色
+	var colors=[0x7fffd4,0xadff2f,0xffff00,0xee82ee,0x000000];
+	//生成球&擊球判定
+	var ball=[];
+	var ranNum,r;
+	var num=0,nowid=0;
+	var kx=[100000],ky=[100000],kz=[100000];
+	var spawnBall=setInterval(function(){
+			r=0;
+			var geoball=new THREE.SphereGeometry(0.1,32,32);
+			var matball=new THREE.MeshLambertMaterial({color:colors[Math.floor(Math.random()*5)]});
+			ball.push(new THREE.Mesh(geoball,matball));
+			var j= ball.length-1;
+			kx[j]=Math.random()*10-5.1;
+			ky[j]=Math.random()*10-5.1;
+			kz[j]=Math.random()*10-5.1;
+			ball[j].num=nowid;
+			ball[j].position.x=kx[j];
+			ball[j].position.y=ky[j];
+			ball[j].position.z=kz[j];
+			scene.add(ball[j]);
+			check();
+			if(r==0){
+					removeBall(nowid,false);
+			}
+			nowid++;
+			num++;
+	},1000);
+	function check(){
+			for(var j=0;j<ball.length-1;j++){
+				if(kx[j]-ball1.position.x<0.01&&kx[j]-ball1.position.x>-0.01||
+					ky[j]-ball1.position.y<0.01&&ky[j]-ball1.position.y>-0.01||
+					kz[j]-ball1.position.z<0.01&&kz[j]-ball1.position.z>-0.01){
+					r=1;
+					removeBall(nowid,true);
+				}
+			}
+		}
+	//刪除球
+	function removeBall(id,hit){
+			setTimeout(
+				function(){
+					var obj;
+					for(var j=0;j<ball.length;j++){
+						if(ball[j].num==id){
+							obj=ball[j];
+							ball.splice(j,1);
+						}
+					}
+					scene.remove(obj);
+					num--;
+					if(hit)score+=10;
+					console.log("Score :"+score);
+					info.innerHTML = 'Score : '+score;
+			},10000)
+	}
+	</script>
+</body>
+</html>
